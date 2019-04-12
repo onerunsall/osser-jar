@@ -41,9 +41,9 @@ public class RealizeTmpFileTask implements Runnable {
 		try {
 			connection = config.dataSource.getConnection();
 
-			sql = "select path from t_torealize limit 0,50";
-			sql1 = "delete from t_torealize where path=?";
-			sql2 = "update t_file set tmpIf=0 where id=?";
+			sql = "select path from oss_" + config.environment + ".t_torealize limit 0,50";
+			sql1 = "delete from oss_" + config.environment + ".t_torealize where path=?";
+			sql2 = "update oss_" + config.environment + ".t_file set tmpIf=0 where id=?";
 			pst = connection.prepareStatement(sql);
 			pst1 = connection.prepareStatement(sql1);
 			pst2 = connection.prepareStatement(sql2);

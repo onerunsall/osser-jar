@@ -163,9 +163,10 @@ public class OssLauncher {
 			String url = null;
 			connection = config.dataSource.getConnection();
 			connection.setAutoCommit(false);
-			sql = new StringBuilder(
-					"insert into t_file (id,md5,project,name,size,duration,cover,path,linkedFileId,tmpIf) values(?,?,?,?,?,?,?,?,?,?)");
-			sql1 = new StringBuilder("select id fileId,path,duration from t_file where project=? and md5=? limit 1");
+			sql = new StringBuilder("insert into oss_" + config.environment
+					+ ".t_file (id,md5,project,name,size,duration,cover,path,linkedFileId,tmpIf) values(?,?,?,?,?,?,?,?,?,?)");
+			sql1 = new StringBuilder("select id fileId,path,duration from oss_" + config.environment
+					+ ".t_file where project=? and md5=? limit 1");
 
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmssSSS");
 			String ext = UrlUtils.fileExtGet(originalFileName);
