@@ -152,6 +152,7 @@ public class OssLauncher {
 		try {
 
 			File projectFolder = new File(config.webroot + "/oss", config.project);
+			logger.debug(projectFolder.getAbsolutePath());
 			if (!projectFolder.exists())
 				throw new RuntimeException("project not exist.");
 
