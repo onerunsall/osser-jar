@@ -151,7 +151,7 @@ public class OssLauncher {
 		List sqlParams = null;
 		try {
 
-			File projectFolder = new File(config.root, config.project);
+			File projectFolder = new File(config.webroot + "/oss", config.project);
 			if (!projectFolder.exists())
 				throw new RuntimeException("project not exist.");
 
