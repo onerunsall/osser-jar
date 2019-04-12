@@ -161,10 +161,12 @@ public class OssLauncher implements Runnable {
 					"insert into oss_" + OssLauncher.environment + ".t_todel (path,delay) values(?,?)").toString();
 			List sqlBatchParams = new ArrayList();
 			for (String url : urls) {
-				sqlParams = new ArrayList();
-				sqlParams.add(url);
-				sqlParams.add(delay);
-				sqlBatchParams.add(sqlParams);
+				if (url != null && !url.isEmpty()) {
+					sqlParams = new ArrayList();
+					sqlParams.add(url);
+					sqlParams.add(delay);
+					sqlBatchParams.add(sqlParams);
+				}
 			}
 			pst = connection.prepareStatement(sql);
 			JdbcUtils.runBatch(pst, sql, sqlBatchParams);
@@ -185,11 +187,19 @@ public class OssLauncher implements Runnable {
 		PreparedStatement pst = null;
 		List sqlParams = null;
 		try {
-			Object[] urls = (String[]) payload.data.get("urls");
+			String[] urls = (String[]) payload.data.get("urls");
 			String sql = new StringBuilder(
 					"insert into oss_" + OssLauncher.environment + ".t_torealize (path) values(?)").toString();
 			pst = connection.prepareStatement(sql);
-			JdbcUtils.runThinBatch(pst, sql, Arrays.asList(urls));
+			List sqlBatchParams = new ArrayList();
+			for (String url : urls) {
+				if (url != null && !url.isEmpty()) {
+					sqlParams = new ArrayList();
+					sqlParams.add(url);
+					sqlBatchParams.add(sqlParams);
+				}
+			}
+			JdbcUtils.runBatch(pst, sql, sqlBatchParams);
 			pst.close();
 		} catch (Exception e) {
 			logger.info(ExceptionUtils.getStackTrace(e));
