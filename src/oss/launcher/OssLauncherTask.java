@@ -15,7 +15,7 @@ import org.apache.log4j.Logger;
 
 import com.giveup.JdbcUtils;
 
-public class OssLauncherTask implements Runnable {
+class OssLauncherTask implements Runnable {
 
 	private static Logger logger = Logger.getLogger(OssLauncherTask.class);
 	private Config config;

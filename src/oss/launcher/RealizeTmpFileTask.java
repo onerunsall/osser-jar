@@ -19,7 +19,7 @@ import com.giveup.SplitUtils;
 import com.giveup.UrlUtils;
 import com.giveup.ValueUtils;
 
-public class RealizeTmpFileTask implements Runnable {
+class RealizeTmpFileTask implements Runnable {
 
 	private static Logger logger = Logger.getLogger(RealizeTmpFileTask.class);
 	private Config config;

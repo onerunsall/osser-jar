@@ -10,7 +10,7 @@ import org.apache.log4j.Logger;
 import com.giveup.IOUtils;
 import com.giveup.UrlUtils;
 
-public class DeleteTmpTask implements Runnable {
+class DeleteTmpTask implements Runnable {
 
 	private static Logger logger = Logger.getLogger(DeleteTmpTask.class);
 

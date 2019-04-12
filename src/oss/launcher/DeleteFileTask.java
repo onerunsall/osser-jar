@@ -17,7 +17,7 @@ import com.giveup.JdbcUtils;
 import com.giveup.UrlUtils;
 import com.giveup.ValueUtils;
 
-public class DeleteFileTask implements Runnable {
+class DeleteFileTask implements Runnable {
 
 	private static Logger logger = Logger.getLogger(DeleteFileTask.class);
 
