@@ -8,7 +8,7 @@ import javax.sql.DataSource;
 
 public class Config {
 
-	ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
+	ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(2);
 	OssLauncherTask ossLauncherTask = new OssLauncherTask(this);
 	RealizeTmpFileTask realizeTmpFileTask = new RealizeTmpFileTask(this);
 	DeleteFileTask deleteFileTask = new DeleteFileTask(this);
@@ -19,7 +19,6 @@ public class Config {
 	String webroot;
 
 	public Config(DataSource dataSource, String environment, String project, String webroot) {
-		super();
 		if (!"prod".equals(environment) && !"test".equals(environment) && !"dev".equals(environment))
 			throw new RuntimeException("environment有误");
 		this.dataSource = dataSource;
