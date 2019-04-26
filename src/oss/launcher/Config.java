@@ -12,7 +12,7 @@ public class Config {
 	OssLauncherTask ossLauncherTask = new OssLauncherTask(this);
 	RealizeTmpFileTask realizeTmpFileTask = new RealizeTmpFileTask(this);
 	DeleteFileTask deleteFileTask = new DeleteFileTask(this);
-	DeleteTmpTask deleteTmpTask = new DeleteTmpTask(this);
+	ClearTmpFolderTask deleteTmpTask = new ClearTmpFolderTask(this);
 	DataSource dataSource = null;
 	String environment;
 	String project;

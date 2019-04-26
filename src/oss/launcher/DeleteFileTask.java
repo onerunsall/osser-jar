@@ -49,6 +49,7 @@ class DeleteFileTask implements Runnable {
 		List sqlParams3 = null;
 		List sqlParams4 = null;
 		try {
+			// 查询待删除的文件
 			sql = new StringBuilder("select path,addTime,delay from oss_" + config.environment
 					+ ".t_todel where addTime=null or delay=0 or (addTime is not null and delay>0 and timestampdiff(SECOND,addTime,now())>delay) order by delay asc,addTime desc limit 0,50");
 			sql1 = new StringBuilder(
@@ -56,6 +57,7 @@ class DeleteFileTask implements Runnable {
 			sql3 = new StringBuilder("delete from oss_" + config.environment + ".t_todel where path=?");
 			sql2 = new StringBuilder("delete from oss_" + config.environment + ".t_file where id=?");
 			sql4 = new StringBuilder("insert into oss_" + config.environment + ".t_todel (path) values(?)");
+			// 将超时的临时文件转入待删除
 			sql5 = new StringBuilder("insert into oss_" + config.environment + ".t_todel(path) select a.path  from oss_"
 					+ config.environment + ".t_file a where a.tmpIf=1 and now() >SUBDATE(a.addTime,interval -3 day)");
 			connection = config.dataSource.getConnection();

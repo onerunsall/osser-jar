@@ -10,13 +10,13 @@ import org.apache.log4j.Logger;
 import com.giveup.IOUtils;
 import com.giveup.UrlUtils;
 
-class DeleteTmpTask implements Runnable {
+class ClearTmpFolderTask implements Runnable {
 
-	private static Logger logger = Logger.getLogger(DeleteTmpTask.class);
+	private static Logger logger = Logger.getLogger(ClearTmpFolderTask.class);
 
 	private Config config;
 
-	public DeleteTmpTask(Config config) {
+	public ClearTmpFolderTask(Config config) {
 		this.config = config;
 	}
 

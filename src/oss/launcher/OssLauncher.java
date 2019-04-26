@@ -142,14 +142,17 @@ public class OssLauncher {
 		this.config = config;
 	}
 
-	public String save(InputStream is, String originalFileName, String cover, String duration) throws Exception {
-		Connection connection = null;
+	public String newFile(Connection connection, InputStream is, String originalFileName, String cover, String duration)
+			throws Exception {
 		PreparedStatement pst = null;
 		StringBuilder sql = null;
 		StringBuilder sql1 = null;
 		StringBuilder sql2 = null;
 		List sqlParams = null;
+		boolean connAutocommitSrc = connection.getAutoCommit();
 		try {
+			if (connAutocommitSrc)
+				connection.setAutoCommit(false);
 
 			File projectFolder = new File(config.webroot + "/oss", config.project);
 			logger.debug(projectFolder.getAbsolutePath());
@@ -212,6 +215,8 @@ public class OssLauncher {
 			pst = connection.prepareStatement(sql.toString());
 			JdbcUtils.runUpdate(pst, sql.toString(), sqlParams);
 			pst.close();
+
+			realize(connection, cover);
 
 			if (existFileRow == null) {
 				sqlParams = new ArrayList();
@@ -300,13 +305,30 @@ public class OssLauncher {
 				tmpFile.delete();
 			}
 
-			connection.commit();
+			if (connAutocommitSrc)
+				connection.commit();
 
 			return url;
 		} catch (Exception e) {
 			logger.info(ExceptionUtils.getStackTrace(e));
-			if (connection != null)
+			if (connAutocommitSrc)
 				connection.rollback();
+			throw e;
+		} finally {
+			if (pst != null)
+				pst.close();
+			if (connAutocommitSrc)
+				connection.setAutoCommit(true);
+		}
+	}
+
+	public String newFile(InputStream is, String originalFileName, String cover, String duration) throws Exception {
+		Connection connection = null;
+		try {
+			connection = config.dataSource.getConnection();
+			return newFile(connection, is, originalFileName, cover, duration);
+		} catch (Exception e) {
+			logger.info(ExceptionUtils.getStackTrace(e));
 			throw e;
 		} finally {
 			if (connection != null)
