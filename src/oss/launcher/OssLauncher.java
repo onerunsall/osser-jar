@@ -165,8 +165,6 @@ public class OssLauncher {
 			Date now = new Date();
 			// 保存文件
 			String url = null;
-			connection = config.dataSource.getConnection();
-			connection.setAutoCommit(false);
 			sql = new StringBuilder("insert into oss_" + config.environment
 					+ ".t_file (id,md5,project,name,size,duration,cover,path,linkedFileId,tmpIf) values(?,?,?,?,?,?,?,?,?,?)");
 			sql1 = new StringBuilder("select id fileId,path,duration from oss_" + config.environment
