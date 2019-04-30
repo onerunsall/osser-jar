@@ -61,6 +61,7 @@ class DeleteFileTask implements Runnable {
 			sql5 = new StringBuilder("insert into oss_" + config.environment + ".t_todel(path) select a.path  from oss_"
 					+ config.environment + ".t_file a where a.tmpIf=1 and now() >SUBDATE(a.addTime,interval -3 day)");
 			connection = config.dataSource.getConnection();
+			connection.setAutoCommit(false);
 
 			pst = connection.prepareStatement(sql.toString());
 			List<Map> rows = JdbcUtils.parseResultSetOfList(JdbcUtils.runQuery(pst, sql.toString()));
@@ -70,7 +71,6 @@ class DeleteFileTask implements Runnable {
 			JdbcUtils.runUpdate(pst5, sql5.toString());
 			pst5.close();
 
-			connection.setAutoCommit(false);
 			for (Map row : rows) {
 				try {
 					String pathSrc = ValueUtils.toString(row.get("path"));
