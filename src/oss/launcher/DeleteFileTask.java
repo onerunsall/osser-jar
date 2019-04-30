@@ -71,6 +71,8 @@ class DeleteFileTask implements Runnable {
 			JdbcUtils.runUpdate(pst5, sql5.toString());
 			pst5.close();
 
+			connection.commit();
+
 			for (Map row : rows) {
 				try {
 					String pathSrc = ValueUtils.toString(row.get("path"));
