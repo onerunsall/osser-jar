@@ -141,22 +141,22 @@ class DeleteFileTask implements Runnable {
 					connection.rollback();
 				} finally {
 					if (pst != null)
-						try {
-							pst.close();
-						} catch (SQLException e) {
-							logger.info(ExceptionUtils.getStackTrace(e));
-						}
+						pst.close();
+					if (pst1 != null)
+						pst1.close();
+					if (pst2 != null)
+						pst2.close();
+					if (pst3 != null)
+						pst3.close();
+					if (pst4 != null)
+						pst4.close();
+					if (pst5 != null)
+						pst5.close();
 				}
 			}
 		} catch (Exception e) {
 			logger.info(ExceptionUtils.getStackTrace(e));
 		} finally {
-			if (pst != null)
-				try {
-					pst.close();
-				} catch (SQLException e) {
-					logger.info(ExceptionUtils.getStackTrace(e));
-				}
 			if (connection != null)
 				try {
 					connection.close();
