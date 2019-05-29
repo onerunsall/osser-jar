@@ -121,7 +121,7 @@ class DeleteFileTask implements Runnable {
 						}
 
 						// 删除目标文件
-						if (file.exists()) {
+						if (file.exists() && path.startsWith("/oss")) {
 							// 删除改目标文件的变种
 							File fileVariantFolder = new File(file.getParent(), UrlUtils.fileExtStrip(file.getName()));
 							if (fileVariantFolder.exists() && !fileVariantFolder.getAbsolutePath()
