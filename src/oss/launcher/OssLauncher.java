@@ -144,6 +144,20 @@ public class OssLauncher {
 		this.config = config;
 	}
 
+	public String newImage(InputStream is, String originalFileName, Integer quality) throws Exception {
+		Connection connection = null;
+		try {
+			connection = config.dataSource.getConnection();
+			return newImage(connection, is, originalFileName, quality);
+		} catch (Exception e) {
+			logger.info(ExceptionUtils.getStackTrace(e));
+			throw e;
+		} finally {
+			if (connection != null)
+				connection.close();
+		}
+	}
+
 	public String newImage(Connection connection, InputStream is, String originalFileName, Integer quality)
 			throws Exception {
 		PreparedStatement pst = null;
@@ -322,8 +336,8 @@ public class OssLauncher {
 		}
 	}
 
-	public String newFile(Connection connection, InputStream is, String originalFileName, String cover, String duration)
-			throws Exception {
+	public String newFile(Connection connection, InputStream is, String originalFileName, String cover,
+			Integer duration) throws Exception {
 		PreparedStatement pst = null;
 		StringBuilder sql = null;
 		StringBuilder sql1 = null;
@@ -500,7 +514,7 @@ public class OssLauncher {
 		}
 	}
 
-	public String newFile(InputStream is, String originalFileName, String cover, String duration) throws Exception {
+	public String newFile(InputStream is, String originalFileName, String cover, Integer duration) throws Exception {
 		Connection connection = null;
 		try {
 			connection = config.dataSource.getConnection();
