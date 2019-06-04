@@ -144,6 +144,19 @@ public class OssLauncher {
 		this.config = config;
 	}
 
+	public static void main(String[] args) {
+		String url = "http://www.baidu.com/sf/11";
+		System.out.println(url.replaceAll("\\\\", "/").replaceAll("(?i)(http://|https://).*?/", "/")
+				.replaceAll("(\\\\+|/+)", "/"));
+	}
+
+	public File getFile(String url) throws Exception {
+		String path = url.replaceAll("\\\\", "/").replaceAll("(?i)(http://|https://).*?/", "/").replaceAll("(\\\\+|/+)",
+				"/");
+		File file = new File(config.webroot, path);
+		return file;
+	}
+
 	public String newImage(InputStream is, String originalFileName, Integer quality) throws Exception {
 		Connection connection = null;
 		try {
@@ -205,11 +218,14 @@ public class OssLauncher {
 
 			// 保存上传的文件到临时目录
 
-			if (quality != null && quality >= 1 && quality <= 10) {
+			if (quality != null && quality >= 1 && quality <= 9) {
+				tmpFile.createNewFile();
 				Builder builder = Thumbnails.of(is);
-				builder.scale(1);
-				builder.outputQuality(quality / 10f);
+				builder.scale(1.0);
+				builder.outputQuality(new Double(quality) / 10f);
 				builder.toFile(tmpFile);
+			} else {
+				IOUtils.write(is, tmpFile);
 			}
 			md5 = IOUtils.getMD5(tmpFile);
 
