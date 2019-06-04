@@ -21,6 +21,8 @@ import com.giveup.JdbcUtils;
 import com.giveup.UrlUtils;
 import com.giveup.ValueUtils;
 
+import net.coobird.thumbnailator.Thumbnails;
+import net.coobird.thumbnailator.Thumbnails.Builder;
 import oss.launcher.OssLauncherTask.Payload;
 
 public class OssLauncher {
@@ -140,6 +142,184 @@ public class OssLauncher {
 				&& !"dev".equals(config.environment))
 			throw new RuntimeException("environment有误");
 		this.config = config;
+	}
+
+	public String newImage(Connection connection, InputStream is, String originalFileName, Integer quality)
+			throws Exception {
+		PreparedStatement pst = null;
+		StringBuilder sql = null;
+		StringBuilder sql1 = null;
+		StringBuilder sql2 = null;
+		List sqlParams = null;
+		boolean connAutocommitSrc = connection.getAutoCommit();
+		try {
+			if (connAutocommitSrc)
+				connection.setAutoCommit(false);
+
+			File projectFolder = new File(config.webroot + "/oss", config.project);
+			logger.debug(projectFolder.getAbsolutePath());
+			if (!projectFolder.exists())
+				throw new RuntimeException("project not exist.");
+
+			File tmpFolder = new File(projectFolder, "tmp");
+			if (!tmpFolder.exists())
+				tmpFolder.mkdirs();
+			Date now = new Date();
+			// 保存文件
+			String url = null;
+			sql = new StringBuilder("insert into oss_" + config.environment
+					+ ".t_file (id,md5,project,name,size,path,linkedFileId,tmpIf) values(?,?,?,?,?,?,?,?)");
+			sql1 = new StringBuilder("select id fileId,path,duration from oss_" + config.environment
+					+ ".t_file where project=? and md5=? limit 1");
+
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmssSSS");
+			String ext = UrlUtils.fileExtGet(originalFileName);
+			String tmpFileId = sdf.format(now) + RandomStringUtils.randomNumeric(6);
+			String realFileId = tmpFileId;
+			String linkFileId = sdf.format(now) + RandomStringUtils.randomNumeric(6);
+			String tmpFileName = StringUtils.isEmpty(ext) ? tmpFileId : (tmpFileId + "." + ext);
+			String realFileName = tmpFileName;
+			String linkFileName = StringUtils.isEmpty(ext) ? linkFileId : (linkFileId + "." + ext);
+			String md5 = null;
+			String tmpFilePath = UrlUtils.buildPath("/", "oss", config.project, "tmp", tmpFileName);
+			String realFilePath = UrlUtils.buildPath("/", "oss", config.project, realFileName);
+			String linkFilePath = UrlUtils.buildPath("/", "oss", config.project, linkFileName);
+			url = linkFilePath;
+			File tmpFile = new File(config.webroot, tmpFilePath);
+			File realFile = new File(config.webroot, realFilePath);
+			File linkFile = new File(config.webroot, linkFilePath);
+
+			// 保存上传的文件到临时目录
+
+			if (quality != null && quality >= 1 && quality <= 10) {
+				Builder builder = Thumbnails.of(is);
+				builder.scale(1);
+				builder.outputQuality(quality / 10f);
+				builder.toFile(tmpFile);
+			}
+			md5 = IOUtils.getMD5(tmpFile);
+
+			sqlParams = new ArrayList();
+			sqlParams.add(config.project);
+			sqlParams.add(md5);
+			pst = connection.prepareStatement(sql1.toString());
+			Map existFileRow = JdbcUtils.parseResultSetOfOne(JdbcUtils.runQuery(pst, sql1.toString(), sqlParams));
+			pst.close();
+
+			realFileId = existFileRow == null ? realFileId : ValueUtils.toString(existFileRow.get("fileId"));
+			sqlParams = new ArrayList();
+			sqlParams.add(linkFileId);
+			sqlParams.add(null);
+			sqlParams.add(config.project);
+			sqlParams.add(linkFileName);
+			sqlParams.add(tmpFile.length());
+			sqlParams.add(linkFilePath);
+			sqlParams.add(realFileId);
+			sqlParams.add(1);
+			pst = connection.prepareStatement(sql.toString());
+			JdbcUtils.runUpdate(pst, sql.toString(), sqlParams);
+			pst.close();
+
+			if (existFileRow == null) {
+				sqlParams = new ArrayList();
+				sqlParams.add(realFileId);
+				sqlParams.add(md5);
+				sqlParams.add(config.project);
+				sqlParams.add(realFileName);
+				sqlParams.add(tmpFile.length());
+				sqlParams.add(realFilePath);
+				sqlParams.add(null);
+				sqlParams.add(0);
+				pst = connection.prepareStatement(sql.toString());
+				JdbcUtils.runUpdate(pst, sql.toString(), sqlParams);
+				pst.close();
+
+//				OsCommandUtils.exec(new StringBuilder("").append(" ln -s ")
+//						.append(realFile.getAbsolutePath()).append(" ").append(linkFile.getAbsolutePath()).toString(),
+//						new StringBuilder("cmd.exe /c ").append(" mklink ")
+//						.append(linkFile.getAbsolutePath()).append(" ").append(realFile.getAbsolutePath())
+//						.toString());
+				String command = new StringBuilder("whoami").toString();
+				logger.debug(command);
+				Process ps = Runtime.getRuntime().exec(command);
+				ps.waitFor();
+				logger.debug(org.apache.commons.io.IOUtils.toString(ps.getInputStream()));
+				ps.destroy();
+
+				command = new StringBuilder("/bin/sh -c cd ").append(realFile.getParent()).toString();
+				logger.debug(command);
+				ps = Runtime.getRuntime().exec(command);
+				ps.waitFor();
+				ps.destroy();
+
+				command = new StringBuilder("pwd").toString();
+				logger.debug(command);
+				ps = Runtime.getRuntime().exec(command);
+				ps.waitFor();
+				logger.debug(org.apache.commons.io.IOUtils.toString(ps.getInputStream()));
+				ps.destroy();
+
+				command = new StringBuilder(" ln -s ").append("." + File.separator + realFile.getName()).append(" ")
+						.append(linkFile.getAbsolutePath()).toString();
+				logger.debug(command);
+				ps = Runtime.getRuntime().exec(command);
+				ps.waitFor();
+				ps.destroy();
+
+				tmpFile.renameTo(realFile);
+			} else {
+				realFile = new File(config.webroot, ValueUtils.toString(existFileRow.get("path")));
+
+				String command = new StringBuilder("whoami").toString();
+				logger.debug(command);
+				Process ps = Runtime.getRuntime().exec(command);
+				ps.waitFor();
+				logger.debug(org.apache.commons.io.IOUtils.toString(ps.getInputStream()));
+				ps.destroy();
+
+				command = new StringBuilder("/bin/sh -c cd ").append(realFile.getParent()).toString();
+				logger.debug(command);
+				ps = Runtime.getRuntime().exec(command);
+				ps.waitFor();
+				ps.destroy();
+
+				command = new StringBuilder("pwd").toString();
+				logger.debug(command);
+				ps = Runtime.getRuntime().exec(command);
+				ps.waitFor();
+				logger.debug(org.apache.commons.io.IOUtils.toString(ps.getInputStream()));
+				ps.destroy();
+
+				command = new StringBuilder(" ln -s ").append("." + File.separator + realFile.getName()).append(" ")
+						.append(linkFile.getAbsolutePath()).toString();
+				logger.debug(command);
+				ps = Runtime.getRuntime().exec(command);
+				ps.waitFor();
+				ps.destroy();
+
+//				OsCommandUtils.exec(
+//						new StringBuilder("").append(" ln -s ").append(realFile.getAbsolutePath()).append(" ")
+//								.append(linkFile.getAbsolutePath()).toString(),
+//						new StringBuilder("cmd.exe /c ").append(" mklink ").append(linkFile.getAbsolutePath())
+//								.append(" ").append(realFile.getAbsolutePath()).toString());
+				tmpFile.delete();
+			}
+
+			if (connAutocommitSrc)
+				connection.commit();
+
+			return url;
+		} catch (Exception e) {
+			logger.info(ExceptionUtils.getStackTrace(e));
+			if (connAutocommitSrc)
+				connection.rollback();
+			throw e;
+		} finally {
+			if (pst != null)
+				pst.close();
+			if (connAutocommitSrc)
+				connection.setAutoCommit(true);
+		}
 	}
 
 	public String newFile(Connection connection, InputStream is, String originalFileName, String cover, String duration)
