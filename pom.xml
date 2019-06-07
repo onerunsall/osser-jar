@@ -47,7 +47,7 @@
 		<dependency>
 			<groupId>com.giveup</groupId>
 			<artifactId>utils</artifactId>
-			<version>1.8.2.1-SNAPSHOT</version>
+			<version>dev</version>
 		</dependency>
 		<dependency>
 			<groupId>net.coobird</groupId>

@@ -7,7 +7,6 @@ import java.sql.PreparedStatement;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -23,135 +22,91 @@ import com.giveup.ValueUtils;
 
 import net.coobird.thumbnailator.Thumbnails;
 import net.coobird.thumbnailator.Thumbnails.Builder;
-import oss.launcher.OssLauncherTask.Payload;
 
 public class OssLauncher {
 
 	private static Logger logger = Logger.getLogger(OssLauncher.class);
 	private Config config;
 
-	public void deleteUnused(Connection connection, String oldUrl, String newUrl) throws InterruptedException {
-		deleteUnused(connection, 0, oldUrl, newUrl);
+	public void change(Connection connection, String oldUrl, String newUrl) throws Exception {
+		if (newUrl != null && !newUrl.equals(oldUrl)) {
+			delete(connection, oldUrl);
+		}
+		realize(connection, newUrl);
 	}
 
-	public void deleteUnused(String oldUrl, String newUrl) throws InterruptedException {
-		deleteUnused(0, oldUrl, newUrl);
+	public void delete(Connection connection, String... urls) throws Exception {
+		StringBuilder sql = new StringBuilder("insert into t_file_del (url) values(?)");
+		PreparedStatement pst = connection.prepareStatement(sql.toString());
+		int n = 0;
+		for (int i = 0; i < urls.length; i++) {
+			String url = urls[i];
+			if (url == null)
+				continue;
+			pst.setObject(1, url);
+			pst.addBatch();
+			n++;
+		}
+		if (n > 0)
+			pst.executeBatch();
+		pst.close();
 	}
 
-	public void deleteUnused(Connection connection, int delay, String oldUrl, String newUrl)
-			throws InterruptedException {
-		if (newUrl != null && !newUrl.trim().isEmpty() && oldUrl != null && !oldUrl.trim().isEmpty()
-				&& !oldUrl.equals(newUrl))
-			delete(connection, delay, oldUrl);
+	public void delete(Connection connection, List<String> urls) throws Exception {
+		delete(connection, urls.toArray(new String[] {}));
 	}
 
-	public void deleteUnused(int delay, String oldUrl, String newUrl) throws InterruptedException {
-		if (newUrl != null && !newUrl.trim().isEmpty() && oldUrl != null && !oldUrl.trim().isEmpty()
-				&& !oldUrl.equals(newUrl))
-			delete(delay, oldUrl);
+	public void realize(Connection connection, List<String> urls) throws Exception {
+		realize(connection, urls.toArray(new String[] {}));
 	}
 
-	public void delete(Connection connection, String url) throws InterruptedException {
-		delete(connection, 0, url);
-	}
+	public void realize(Connection connection, String... urls) throws Exception {
+		StringBuilder sql = new StringBuilder("update t_file set tmpIf=0 where id=?");
+		PreparedStatement pst = connection.prepareStatement(sql.toString());
 
-	public void delete(String url) throws InterruptedException {
-		delete(0, url);
-	}
+		int n = 0;
+		for (int i = 0; i < urls.length; i++) {
+			String url = urls[i];
+			if (url == null)
+				continue;
+			String path = url.replaceAll("\\\\", "/").replaceFirst("(?i)((http:/+)|(https:/+))", "")
+					.replaceFirst(".*?/", "/");
+			String fileName = path.replaceAll("^.*/", "").replaceAll("\\..*$", "");
+			String fileId = fileName;
 
-	public void delete(Connection connection, int delay, String url) throws InterruptedException {
-		delete(connection, delay, new String[] { url });
-	}
+			pst.setObject(1, fileId);
+			pst.addBatch();
+			n++;
+			String coverUrl = ValueUtils
+					.toString(JdbcUtils.runQueryOneColumn(connection, "select cover from t_file where id=? ", fileId));
+			if (coverUrl == null)
+				continue;
+			String coverPath = coverUrl.replaceAll("\\\\", "/").replaceFirst("(?i)((http:/+)|(https:/+))", "")
+					.replaceFirst(".*?/", "/");
+			String coverFileName = coverPath.replaceAll("^.*/", "").replaceAll("\\..*$", "");
+			String coverFileId = coverFileName;
 
-	public void delete(int delay, String url) throws InterruptedException {
-		delete(delay, new String[] { url });
-	}
-
-	public void delete(List<String> urls) throws InterruptedException {
-		delete(0, urls);
-	}
-
-	public void delete(Connection connection, List<String> urls) throws InterruptedException {
-		delete(connection, 0, urls);
-	}
-
-	public void delete(Connection connection, int delay, List<String> urls) throws InterruptedException {
-		delete(connection, delay, urls.toArray(new String[] {}));
-	}
-
-	public void delete(int delay, List<String> urls) throws InterruptedException {
-		delete(delay, urls.toArray(new String[] {}));
-	}
-
-	public void delete(Connection connection, int delay, String... urls) throws InterruptedException {
-		Map data = new HashMap();
-		data.put("urls", urls);
-		data.put("delay", delay);
-		Payload payload = new Payload();
-		payload.type = "delete";
-		payload.data = data;
-		config.ossLauncherTask.doDelete(payload, connection);
-	}
-
-	public void delete(int delay, String... urls) throws InterruptedException {
-		Map data = new HashMap();
-		data.put("urls", urls);
-		data.put("delay", delay);
-		Payload payload = new Payload();
-		payload.type = "delete";
-		payload.data = data;
-		config.ossLauncherTask.queue.put(payload);
-	}
-
-	public void realize(Connection connection, String tmpUrl) throws InterruptedException {
-		realize(connection, new String[] { tmpUrl });
-	}
-
-	public void realize(String tmpUrl) throws InterruptedException {
-		realize(new String[] { tmpUrl });
-	}
-
-	public void realize(Connection connection, List<String> tmpUrls) throws InterruptedException {
-		realize(connection, tmpUrls.toArray(new String[] {}));
-	}
-
-	public void realize(List<String> tmpUrls) throws InterruptedException {
-		realize(tmpUrls.toArray(new String[] {}));
-	}
-
-	public void realize(String... tmpUrls) throws InterruptedException {
-		Map data = new HashMap();
-		data.put("urls", tmpUrls);
-		Payload payload = new Payload();
-		payload.type = "realize";
-		payload.data = data;
-		config.ossLauncherTask.queue.put(payload);
-	}
-
-	public void realize(Connection connection, String... tmpUrls) throws InterruptedException {
-		Map data = new HashMap();
-		data.put("urls", tmpUrls);
-		Payload payload = new Payload();
-		payload.type = "realize";
-		payload.data = data;
-		config.ossLauncherTask.doRealize(payload, connection);
+			pst.setObject(1, coverFileId);
+			pst.addBatch();
+			n++;
+		}
+		if (n > 0)
+			pst.executeBatch();
+		pst.close();
 	}
 
 	public OssLauncher(Config config) {
-		if (!"prod".equals(config.environment) && !"test".equals(config.environment)
-				&& !"dev".equals(config.environment))
-			throw new RuntimeException("environment有误");
 		this.config = config;
 	}
 
 	public static void main(String[] args) {
 		String url = "http://www.baidu.com/sf/11";
-		System.out.println(url.replaceAll("\\\\", "/").replaceAll("(?i)(http://|https://).*?/", "/")
-				.replaceAll("(\\\\+|/+)", "/"));
+		System.out.println(
+				url.replaceAll("\\\\", "/").replaceFirst("(?i)((http://)|(https://))", "").replaceFirst(".*?/", "/"));
 	}
 
 	public File getFile(String url) throws Exception {
-		String path = url.replaceAll("\\\\", "/").replaceAll("(?i)(http://|https://).*?/", "/").replaceAll("(\\\\+|/+)",
+		String path = url.replaceAll("\\\\", "/").replaceFirst("(?i)((http:/+)|(https:/+))", "").replaceFirst(".*?/",
 				"/");
 		File file = new File(config.webroot, path);
 		return file;
@@ -194,10 +149,9 @@ public class OssLauncher {
 			Date now = new Date();
 			// 保存文件
 			String url = null;
-			sql = new StringBuilder("insert into oss_" + config.environment
-					+ ".t_file (id,md5,project,name,size,path,linkedFileId,tmpIf) values(?,?,?,?,?,?,?,?)");
-			sql1 = new StringBuilder("select id fileId,path,duration from oss_" + config.environment
-					+ ".t_file where project=? and md5=? limit 1");
+			sql = new StringBuilder(
+					"insert into t_file (id,md5,name,size,path,linkedFileId,tmpIf) values(?,?,?,?,?,?,?)");
+			sql1 = new StringBuilder("select id fileId,path,duration from t_file where  md5=? limit 1");
 
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmssSSS");
 			String ext = UrlUtils.fileExtGet(originalFileName);
@@ -230,7 +184,6 @@ public class OssLauncher {
 			md5 = IOUtils.getMD5(tmpFile);
 
 			sqlParams = new ArrayList();
-			sqlParams.add(config.project);
 			sqlParams.add(md5);
 			pst = connection.prepareStatement(sql1.toString());
 			Map existFileRow = JdbcUtils.parseResultSetOfOne(JdbcUtils.runQuery(pst, sql1.toString(), sqlParams));
@@ -240,7 +193,6 @@ public class OssLauncher {
 			sqlParams = new ArrayList();
 			sqlParams.add(linkFileId);
 			sqlParams.add(null);
-			sqlParams.add(config.project);
 			sqlParams.add(linkFileName);
 			sqlParams.add(tmpFile.length());
 			sqlParams.add(linkFilePath);
@@ -254,7 +206,6 @@ public class OssLauncher {
 				sqlParams = new ArrayList();
 				sqlParams.add(realFileId);
 				sqlParams.add(md5);
-				sqlParams.add(config.project);
 				sqlParams.add(realFileName);
 				sqlParams.add(tmpFile.length());
 				sqlParams.add(realFilePath);
@@ -375,10 +326,9 @@ public class OssLauncher {
 			Date now = new Date();
 			// 保存文件
 			String url = null;
-			sql = new StringBuilder("insert into oss_" + config.environment
-					+ ".t_file (id,md5,project,name,size,duration,cover,path,linkedFileId,tmpIf) values(?,?,?,?,?,?,?,?,?,?)");
-			sql1 = new StringBuilder("select id fileId,path,duration from oss_" + config.environment
-					+ ".t_file where project=? and md5=? limit 1");
+			sql = new StringBuilder(
+					"insert into t_file (id,md5,name,size,duration,cover,path,linkedFileId,tmpIf) values(?,?,?,?,?,?,?,?,?)");
+			sql1 = new StringBuilder("select id fileId,path,duration from t_file where md5=? limit 1");
 
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmssSSS");
 			String ext = UrlUtils.fileExtGet(originalFileName);
@@ -402,7 +352,6 @@ public class OssLauncher {
 			md5 = IOUtils.getMD5(tmpFile);
 
 			sqlParams = new ArrayList();
-			sqlParams.add(config.project);
 			sqlParams.add(md5);
 			pst = connection.prepareStatement(sql1.toString());
 			Map existFileRow = JdbcUtils.parseResultSetOfOne(JdbcUtils.runQuery(pst, sql1.toString(), sqlParams));
@@ -412,7 +361,6 @@ public class OssLauncher {
 			sqlParams = new ArrayList();
 			sqlParams.add(linkFileId);
 			sqlParams.add(null);
-			sqlParams.add(config.project);
 			sqlParams.add(linkFileName);
 			sqlParams.add(tmpFile.length());
 			sqlParams.add(duration);
@@ -424,13 +372,10 @@ public class OssLauncher {
 			JdbcUtils.runUpdate(pst, sql.toString(), sqlParams);
 			pst.close();
 
-			realize(connection, cover);
-
 			if (existFileRow == null) {
 				sqlParams = new ArrayList();
 				sqlParams.add(realFileId);
 				sqlParams.add(md5);
-				sqlParams.add(config.project);
 				sqlParams.add(realFileName);
 				sqlParams.add(tmpFile.length());
 				sqlParams.add(duration);
