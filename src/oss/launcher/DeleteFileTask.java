@@ -88,7 +88,7 @@ class DeleteFileTask implements Runnable {
 					String fileId = fileName;
 					String fileExtName = path.replaceAll("^.*\\.", "");
 					File file = new File(config.webroot, path);
-
+					logger.debug("delete " + file.getAbsoluteFile());
 					// 查找file记录
 					Map fileRow = JdbcUtils.parseResultSetOfOne(JdbcUtils.runQuery(pst1, sql1.toString(), fileId));
 
@@ -104,26 +104,24 @@ class DeleteFileTask implements Runnable {
 						JdbcUtils.runUpdate(pst2, sql2.toString(), fileId);
 					}
 
-					// 删除目标文件
-					if (file.exists()) {
-						if (!path.startsWith("/oss/" + config.project))
-							logger.info("只能删除本项目下的文件");
-						else {
-							// 删除改目标文件的变种
-							File fileVariantFolder = new File(file.getParent(), UrlUtils.fileExtStrip(file.getName()));
-							if (fileVariantFolder.exists() && !fileVariantFolder.getAbsolutePath()
-									.equals(file.getParentFile().getAbsolutePath()))
-								if (!IOUtils.deleteRecursion(fileVariantFolder))
-									throw new RuntimeException("删除变种文件夹失败" + fileVariantFolder.getAbsolutePath());
-
-							if (!file.delete())
-								throw new RuntimeException("删除文件失败" + file.getAbsolutePath());
-						}
+					logger.debug("delete real");
+					if (!path.startsWith("/oss/" + config.project))
+						logger.debug("只能删除本项目下的文件");
+					else {
+						logger.debug("file.exists " + file.exists());
+						// 删除改目标文件的变种
+						File fileVariantFolder = new File(file.getParent(), UrlUtils.fileExtStrip(file.getName()));
+						if (fileVariantFolder.exists()
+								&& !fileVariantFolder.getAbsolutePath().equals(file.getParentFile().getAbsolutePath()))
+							if (!IOUtils.deleteRecursion(fileVariantFolder))
+								throw new RuntimeException("删除变种文件夹失败" + fileVariantFolder.getAbsolutePath());
+						if (!file.delete())
+							throw new RuntimeException("删除文件失败" + file.getAbsolutePath());
 					}
 					connection.commit();
 
 				} catch (Exception e) {
-					logger.info(ExceptionUtils.getStackTrace(e));
+					logger.debug(ExceptionUtils.getStackTrace(e));
 					connection.rollback();
 				} finally {
 
