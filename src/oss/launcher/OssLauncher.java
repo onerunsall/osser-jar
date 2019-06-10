@@ -17,6 +17,7 @@ import org.apache.log4j.Logger;
 
 import com.giveup.IOUtils;
 import com.giveup.JdbcUtils;
+import com.giveup.StrUtils;
 import com.giveup.UrlUtils;
 import com.giveup.ValueUtils;
 
@@ -28,11 +29,21 @@ public class OssLauncher {
 	private static Logger logger = Logger.getLogger(OssLauncher.class);
 	private Config config;
 
-	public void change(Connection connection, String oldUrl, String newUrl) throws Exception {
-		if (newUrl != null && !newUrl.equals(oldUrl)) {
-			delete(connection, oldUrl);
+	public void change(Connection connection, String oldStr, String newStr) throws Exception {
+		if (newStr != null && !newStr.equals(oldStr)) {
+			delete(connection, oldStr);
 		}
-		realize(connection, newUrl);
+		realize(connection, newStr);
+	}
+
+	public void changeByCommaSplit(Connection connection, String commaSplitOld, String commaSplitNew) throws Exception {
+		change(connection, StringUtils.splitByWholeSeparatorPreserveAllTokens(commaSplitOld, ","),
+				StringUtils.splitByWholeSeparatorPreserveAllTokens(commaSplitNew, ","));
+	}
+
+	public void change(Connection connection, String[] oldStrs, String[] newStrs) throws Exception {
+		delete(connection, StrUtils.extractOffStrs(oldStrs, newStrs));
+		realize(connection, newStrs);
 	}
 
 	public void delete(Connection connection, String... urls) throws Exception {
