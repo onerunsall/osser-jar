@@ -13,13 +13,13 @@ import org.apache.log4j.Logger;
 
 import com.giveup.JdbcUtils;
 
-class DeleteNorecordFileTask implements Runnable {
+class DeleteNotexistFileTask implements Runnable {
 
-	private static Logger logger = Logger.getLogger(DeleteNorecordFileTask.class);
+	private static Logger logger = Logger.getLogger(DeleteNotexistFileTask.class);
 
 	private Config config;
 
-	public DeleteNorecordFileTask(Config config) {
+	public DeleteNotexistFileTask(Config config) {
 		this.config = config;
 	}
 
@@ -30,10 +30,8 @@ class DeleteNorecordFileTask implements Runnable {
 		try {
 			// 查询待删除的文件
 			StringBuilder sql = new StringBuilder("select id from t_file where id=?");
-			StringBuilder sql1 = new StringBuilder("insert into t_file_del (url) values(?)");
 
 			connection = config.dataSource.getConnection();
-			connection.setAutoCommit(false);
 
 			File projectOssRoot = new File(config.webroot, "oss/" + config.project);
 			if (projectOssRoot.exists() && projectOssRoot.isDirectory()) {
@@ -42,13 +40,11 @@ class DeleteNorecordFileTask implements Runnable {
 					FileFilter setConnection(Connection connection) throws SQLException {
 						this.connection = connection;
 						this.pst = this.connection.prepareStatement(sql.toString());
-						this.pst1 = this.connection.prepareStatement(sql1.toString());
 						return this;
 					}
 
 					Connection connection = null;
 					PreparedStatement pst = null;
-					PreparedStatement pst1 = null;
 
 					@Override
 					public boolean accept(File file) {
@@ -58,9 +54,15 @@ class DeleteNorecordFileTask implements Runnable {
 							Map row = JdbcUtils.parseResultSetOfOne(
 									JdbcUtils.runQuery(pst, sql.toString(), file.getName().replaceAll("\\..*$", "")));
 							if (row == null) {
-								JdbcUtils.runUpdate(pst1, sql1.toString(),
-										"/oss/" + config.project + "/" + file.getName());
-								connection.commit();
+								if (!file.delete()) {
+									logger.info("删除文件" + file.getAbsolutePath());
+									String command = new StringBuilder("rm -rf ")
+											.append(file.getAbsolutePath().toString()).toString();
+									logger.info(command);
+									Process ps = Runtime.getRuntime().exec(command);
+									ps.waitFor();
+									ps.destroy();
+								}
 							}
 						} catch (Exception e) {
 							logger.info(ExceptionUtils.getStackTrace(e));

@@ -8,7 +8,8 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
+
+import javax.annotation.processing.Processor;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -17,7 +18,6 @@ import org.apache.log4j.Logger;
 import com.giveup.IOUtils;
 import com.giveup.JdbcUtils;
 import com.giveup.UrlUtils;
-import com.giveup.ValueUtils;
 
 class DeleteFileTask implements Runnable {
 
@@ -115,8 +115,15 @@ class DeleteFileTask implements Runnable {
 								&& !fileVariantFolder.getAbsolutePath().equals(file.getParentFile().getAbsolutePath()))
 							if (!IOUtils.deleteRecursion(fileVariantFolder))
 								throw new RuntimeException("删除变种文件夹失败" + fileVariantFolder.getAbsolutePath());
-						if (!file.delete())
-							throw new RuntimeException("删除文件失败" + file.getAbsolutePath());
+						if (!file.delete()) {
+							// throw new RuntimeException("删除文件失败" + file.getAbsolutePath());
+							String command = new StringBuilder("rm -rf ").append(file.getAbsolutePath().toString())
+									.toString();
+							logger.debug(command);
+							Process ps = Runtime.getRuntime().exec(command);
+							ps.waitFor();
+							ps.destroy();
+						}
 					}
 					connection.commit();
 
