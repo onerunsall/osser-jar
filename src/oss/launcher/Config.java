@@ -13,7 +13,8 @@ public class Config {
 	// RealizeTmpFileTask realizeTmpFileTask = new RealizeTmpFileTask(this);
 	DeleteFileTask deleteFileTask = new DeleteFileTask(this);
 	ClearTmpFolderTask deleteTmpTask = new ClearTmpFolderTask(this);
-	DeleteNotrecordFileTask deleteNorecordFileTask = new DeleteNotrecordFileTask(this);
+	DeleteNotrecordFileTask deleteNotrecordFileTask = new DeleteNotrecordFileTask(this);
+	DeleteNotexistFileTask deleteNotexistFileTask = new DeleteNotexistFileTask(this);
 	DataSource dataSource = null;
 	String project;
 	String webroot;
@@ -28,7 +29,8 @@ public class Config {
 		// TimeUnit.MINUTES);
 		scheduledExecutorService.scheduleWithFixedDelay(deleteFileTask, 0, 1, TimeUnit.MINUTES);
 		scheduledExecutorService.scheduleWithFixedDelay(deleteTmpTask, 0, 1, TimeUnit.MINUTES);
-		scheduledExecutorService.execute(deleteNorecordFileTask);
+		scheduledExecutorService.scheduleWithFixedDelay(deleteNotexistFileTask, 0, 2, TimeUnit.MINUTES);
+		scheduledExecutorService.execute(deleteNotrecordFileTask);
 	}
 
 }

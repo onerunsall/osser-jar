@@ -6,20 +6,17 @@ import java.net.MalformedURLException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.log4j.Logger;
 
 import com.giveup.JdbcUtils;
-import com.giveup.ValueUtils;
 
 class DeleteNotrecordFileTask implements Runnable {
 
 	private static Logger logger = Logger.getLogger(DeleteNotrecordFileTask.class);
-	int pageNo = 0;
-	int pageSize = 50;
+
 	private Config config;
 
 	public DeleteNotrecordFileTask(Config config) {
@@ -28,48 +25,51 @@ class DeleteNotrecordFileTask implements Runnable {
 
 	@Override
 	public void run() {
-		logger.info("执行任务 DeleteNotrecordFileTask");
+		logger.info("执行任务 DeleteNorecordFileTask");
 		Connection connection = null;
 		try {
 			// 查询待删除的文件
-			StringBuilder sql = new StringBuilder("select count(1) from t_file where checkIs=0 ");
+			StringBuilder sql = new StringBuilder("select id from t_file where id=?");
 
 			connection = config.dataSource.getConnection();
 
-			connection.setAutoCommit(false);
+			File projectOssRoot = new File(config.webroot, "oss/" + config.project);
+			if (projectOssRoot.exists() && projectOssRoot.isDirectory()) {
+				projectOssRoot.listFiles(new FileFilter() {
 
-			Integer notCheckCount = JdbcUtils.runQueryOneInteger(connection, sql.toString());
-			if (notCheckCount == 0)
-				JdbcUtils.runUpdate(connection, "update t_file set checkIs=0 ");
-			connection.commit();
-
-			while (true) {
-				pageNo++;
-				List<Map> rows = JdbcUtils.runQueryList(connection,
-						"select id fileId,path from t_file where checkIs=0 limit ?,?", pageSize * (pageNo - 1),
-						pageSize);
-				for (int i = 0; i < rows.size(); i++) {
-					try {
-						Map row = rows.get(i);
-						String fileId = ValueUtils.toString(row.get("fileId"));
-						String path = ValueUtils.toString(row.get("path"));
-						File file = new File(config.webroot, path);
-						if (!file.exists()) {
-							JdbcUtils.runUpdate(connection, "delete from t_file where id=? ", fileId);
-							if (!file.delete()) {
-								logger.info("删除文件" + file.getAbsolutePath());
-								String command = new StringBuilder("rm -rf ").append(file.getAbsolutePath().toString())
-										.toString();
-								logger.info(command);
-								Process ps = Runtime.getRuntime().exec(command);
-								ps.waitFor();
-								ps.destroy();
-							}
-						}
-					} catch (Exception e) {
-						logger.info(ExceptionUtils.getStackTrace(e));
+					FileFilter setConnection(Connection connection) throws SQLException {
+						this.connection = connection;
+						this.pst = this.connection.prepareStatement(sql.toString());
+						return this;
 					}
-				}
+
+					Connection connection = null;
+					PreparedStatement pst = null;
+
+					@Override
+					public boolean accept(File file) {
+						if (file.isDirectory())
+							return false;
+						try {
+							Map row = JdbcUtils.parseResultSetOfOne(
+									JdbcUtils.runQuery(pst, sql.toString(), file.getName().replaceAll("\\..*$", "")));
+							if (row == null) {
+								if (!file.delete()) {
+									logger.info("删除文件" + file.getAbsolutePath());
+									String command = new StringBuilder("rm -rf ")
+											.append(file.getAbsolutePath().toString()).toString();
+									logger.info(command);
+									Process ps = Runtime.getRuntime().exec(command);
+									ps.waitFor();
+									ps.destroy();
+								}
+							}
+						} catch (Exception e) {
+							logger.info(ExceptionUtils.getStackTrace(e));
+						}
+						return false;
+					}
+				}.setConnection(connection));
 			}
 		} catch (Exception e) {
 			logger.info(ExceptionUtils.getStackTrace(e));
