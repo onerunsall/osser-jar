@@ -41,12 +41,18 @@ public class OssLauncher {
 				StringUtils.splitByWholeSeparatorPreserveAllTokens(commaSplitNew, ","));
 	}
 
+	public void change(Connection connection, List<String> oldStrs, List<String> newStrs) throws Exception {
+		change(connection, oldStrs.toArray(new String[] {}), newStrs.toArray(new String[] {}));
+	}
+
 	public void change(Connection connection, String[] oldStrs, String[] newStrs) throws Exception {
 		delete(connection, StrUtils.extractOffStrs(oldStrs, newStrs));
 		realize(connection, newStrs);
 	}
 
 	public void delete(Connection connection, String... urls) throws Exception {
+		if (urls == null || urls.length == 0)
+			return;
 		StringBuilder sql = new StringBuilder("insert into t_file_del (url) values(?)");
 		PreparedStatement pst = connection.prepareStatement(sql.toString());
 		int n = 0;
@@ -72,6 +78,8 @@ public class OssLauncher {
 	}
 
 	public void realize(Connection connection, String... urls) throws Exception {
+		if (urls == null || urls.length == 0)
+			return;
 		StringBuilder sql = new StringBuilder("update t_file set tmpIf=0 where id=?");
 		PreparedStatement pst = connection.prepareStatement(sql.toString());
 
