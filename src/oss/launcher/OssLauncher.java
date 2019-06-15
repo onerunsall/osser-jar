@@ -58,7 +58,7 @@ public class OssLauncher {
 		int n = 0;
 		for (int i = 0; i < urls.length; i++) {
 			String url = urls[i];
-			if (url == null)
+			if (url == null || url.trim().isEmpty())
 				continue;
 			pst.setObject(1, url);
 			pst.addBatch();
@@ -86,7 +86,7 @@ public class OssLauncher {
 		int n = 0;
 		for (int i = 0; i < urls.length; i++) {
 			String url = urls[i];
-			if (url == null)
+			if (url == null || url.trim().isEmpty())
 				continue;
 			String path = url.replaceAll("\\\\", "/").replaceFirst("(?i)((http:/+)|(https:/+))", "")
 					.replaceFirst(".*?/", "/");

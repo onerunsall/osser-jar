@@ -79,8 +79,11 @@ class DeleteFileTask implements Runnable {
 			}
 			for (int i = 0; i < urls.size(); i++) {
 				String url = StringUtils.trimToNull(urls.get(i));
-				if (url == null)
+				if (url == null || url.trim().isEmpty()) {
+					JdbcUtils.runUpdate(connection, "delete from t_file_del where url=?", url);
+					connection.commit();
 					continue;
+				}
 				try {
 					String path = url.replaceAll("\\\\", "/").replaceFirst("(?i)((http:/+)|(https:/+))", "")
 							.replaceFirst(".*?/", "/");
