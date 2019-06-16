@@ -78,7 +78,7 @@ class DeleteFileTask implements Runnable {
 				pst4 = connection.prepareStatement(sql4.toString());
 			}
 			for (int i = 0; i < urls.size(); i++) {
-				String url = StringUtils.trimToNull(urls.get(i));
+				String url = urls.get(i);
 				if (url == null || url.trim().isEmpty()) {
 					JdbcUtils.runUpdate(connection, "delete from t_file_del where url=?", url);
 					connection.commit();
