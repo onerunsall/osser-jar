@@ -108,7 +108,7 @@ class DeleteFileTask implements Runnable {
 					}
 
 					logger.debug("delete real");
-					if (!path.startsWith("/oss/" + config.project))
+					if (!path.startsWith("/oss/" + config.project + "/"))
 						logger.debug("只能删除本项目下的文件");
 					else {
 						logger.debug("file.exists " + file.exists());
