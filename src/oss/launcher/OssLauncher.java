@@ -16,6 +16,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.log4j.Logger;
 
 import com.giveup.IOUtils;
+import com.giveup.InteractRuntimeException;
 import com.giveup.JdbcUtils;
 import com.giveup.StrUtils;
 import com.giveup.UrlUtils;
@@ -337,7 +338,7 @@ public class OssLauncher {
 			File projectFolder = new File(config.webroot + "/oss", config.project);
 			logger.debug(projectFolder.getAbsolutePath());
 			if (!projectFolder.exists())
-				throw new RuntimeException("project not exist.");
+				throw new InteractRuntimeException("project not exist.");
 
 			File tmpFolder = new File(projectFolder, "tmp");
 			if (!tmpFolder.exists())
