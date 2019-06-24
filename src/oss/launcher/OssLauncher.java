@@ -170,7 +170,7 @@ public class OssLauncher {
 			// 保存文件
 			String url = null;
 			sql = new StringBuilder(
-					"insert into t_file (id,md5,name,size,path,linkedFileId,tmpIf) values(?,?,?,?,?,?,?)");
+					"insert into t_file (id,md5,name,size,path,linkedFileId,tmpIf,ext) values(?,?,?,?,?,?,?,?)");
 			sql1 = new StringBuilder("select id fileId,path,duration from t_file where  md5=? limit 1");
 
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmssSSS");
@@ -218,6 +218,7 @@ public class OssLauncher {
 			sqlParams.add(linkFilePath);
 			sqlParams.add(realFileId);
 			sqlParams.add(1);
+			sqlParams.add(ext);
 			pst = connection.prepareStatement(sql.toString());
 			JdbcUtils.runUpdate(pst, sql.toString(), sqlParams);
 			pst.close();
@@ -231,6 +232,7 @@ public class OssLauncher {
 				sqlParams.add(realFilePath);
 				sqlParams.add(null);
 				sqlParams.add(0);
+				sqlParams.add(ext);
 				pst = connection.prepareStatement(sql.toString());
 				JdbcUtils.runUpdate(pst, sql.toString(), sqlParams);
 				pst.close();
@@ -347,7 +349,7 @@ public class OssLauncher {
 			// 保存文件
 			String url = null;
 			sql = new StringBuilder(
-					"insert into t_file (id,md5,name,size,duration,cover,path,linkedFileId,tmpIf) values(?,?,?,?,?,?,?,?,?)");
+					"insert into t_file (id,md5,name,size,duration,cover,path,linkedFileId,tmpIf,ext) values(?,?,?,?,?,?,?,?,?,?)");
 			sql1 = new StringBuilder("select id fileId,path,duration from t_file where md5=? limit 1");
 
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmssSSS");
@@ -388,6 +390,7 @@ public class OssLauncher {
 			sqlParams.add(linkFilePath);
 			sqlParams.add(realFileId);
 			sqlParams.add(1);
+			sqlParams.add(ext);
 			pst = connection.prepareStatement(sql.toString());
 			JdbcUtils.runUpdate(pst, sql.toString(), sqlParams);
 			pst.close();
@@ -403,6 +406,7 @@ public class OssLauncher {
 				sqlParams.add(realFilePath);
 				sqlParams.add(null);
 				sqlParams.add(0);
+				sqlParams.add(ext);
 				pst = connection.prepareStatement(sql.toString());
 				JdbcUtils.runUpdate(pst, sql.toString(), sqlParams);
 				pst.close();
