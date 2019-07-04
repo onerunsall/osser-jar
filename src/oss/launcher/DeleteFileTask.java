@@ -55,7 +55,7 @@ class DeleteFileTask implements Runnable {
 			sql1 = new StringBuilder("select id fildId,cover,path,tmpIf from t_file where id=? ");
 			sql3 = new StringBuilder("delete from t_file_del where url=?");
 			sql2 = new StringBuilder("delete from t_file where id=?");
-			sql4 = new StringBuilder("insert into t_file_del (url) values(?)");
+			sql4 = new StringBuilder("insert into t_file_del (url,addTime) values(?,now())");
 
 			connection = config.dataSource.getConnection();
 			connection.setAutoCommit(false);
@@ -67,7 +67,7 @@ class DeleteFileTask implements Runnable {
 
 			// 将超时的临时文件转入待删除
 			JdbcUtils.runUpdate(connection,
-					"insert into t_file_del(url) select a.path  from t_file a where a.tmpIf=1 and now() >SUBDATE(a.addTime,interval -30 minute)");
+					"insert into t_file_del(url,addTime) select a.path,now()  from t_file a where a.tmpIf=1 and now() >SUBDATE(a.addTime,interval -30 minute)");
 
 			connection.commit();
 
@@ -139,7 +139,7 @@ class DeleteFileTask implements Runnable {
 			}
 
 			JdbcUtils.runUpdate(connection,
-					"INSERT INTO t_file_del (url) SELECT path FROM (SELECT path,(SELECT COUNT(1) FROM t_file WHERE linkedFileId=t.id) linkCount FROM t_file t WHERE linkedFileId IS NULL ) tt WHERE tt.linkCount =0");
+					"INSERT INTO t_file_del (url,addTime) SELECT path,now() FROM (SELECT path,(SELECT COUNT(1) FROM t_file WHERE linkedFileId=t.id) linkCount FROM t_file t WHERE linkedFileId IS NULL ) tt WHERE tt.linkCount =0");
 			JdbcUtils.runUpdate(connection,
 					"DELETE FROM t_file WHERE id IN (SELECT id FROM (SELECT id,(SELECT COUNT(1) FROM t_file WHERE linkedFileId=t.id) linkCount FROM t_file t WHERE linkedFileId IS NULL ) tt WHERE tt.linkCount =0)");
 			connection.commit();

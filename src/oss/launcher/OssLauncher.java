@@ -54,7 +54,7 @@ public class OssLauncher {
 	public void delete(Connection connection, String... urls) throws Exception {
 		if (urls == null || urls.length == 0)
 			return;
-		StringBuilder sql = new StringBuilder("insert into t_file_del (url) values(?)");
+		StringBuilder sql = new StringBuilder("insert into t_file_del (url,addTime) values(?,now())");
 		PreparedStatement pst = connection.prepareStatement(sql.toString());
 		int n = 0;
 		for (int i = 0; i < urls.length; i++) {
@@ -170,7 +170,7 @@ public class OssLauncher {
 			// 保存文件
 			String url = null;
 			sql = new StringBuilder(
-					"insert into t_file (id,md5,name,size,path,linkedFileId,tmpIf,ext) values(?,?,?,?,?,?,?,?)");
+					"insert into t_file (id,md5,name,size,path,linkedFileId,tmpIf,ext,addTime) values(?,?,?,?,?,?,?,?,now())");
 			sql1 = new StringBuilder("select id fileId,path,duration from t_file where  md5=? limit 1");
 
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmssSSS");
@@ -349,7 +349,7 @@ public class OssLauncher {
 			// 保存文件
 			String url = null;
 			sql = new StringBuilder(
-					"insert into t_file (id,md5,name,size,duration,cover,path,linkedFileId,tmpIf,ext) values(?,?,?,?,?,?,?,?,?,?)");
+					"insert into t_file (id,md5,name,size,duration,cover,path,linkedFileId,tmpIf,ext,addTime) values(?,?,?,?,?,?,?,?,?,?,now())");
 			sql1 = new StringBuilder("select id fileId,path,duration from t_file where md5=? limit 1");
 
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmssSSS");
