@@ -140,8 +140,8 @@ class DeleteFileTask implements Runnable {
 
 			JdbcUtils.runUpdate(connection,
 					"INSERT INTO t_file_del (url,addTime) SELECT path,now() FROM (SELECT path,(SELECT COUNT(1) FROM t_file WHERE linkedFileId=t.id) linkCount FROM t_file t WHERE linkedFileId IS NULL ) tt WHERE tt.linkCount =0");
-			JdbcUtils.runUpdate(connection,
-					"DELETE FROM t_file WHERE id IN (SELECT id FROM (SELECT id,(SELECT COUNT(1) FROM t_file WHERE linkedFileId=t.id) linkCount FROM t_file t WHERE linkedFileId IS NULL ) tt WHERE tt.linkCount =0)");
+//			JdbcUtils.runUpdate(connection,
+//					"DELETE FROM t_file WHERE id IN (SELECT id FROM (SELECT id,(SELECT COUNT(1) FROM t_file WHERE linkedFileId=t.id) linkCount FROM t_file t WHERE linkedFileId IS NULL ) tt WHERE tt.linkCount =0)");
 			connection.commit();
 		} catch (Exception e) {
 			logger.info(ExceptionUtils.getStackTrace(e));
