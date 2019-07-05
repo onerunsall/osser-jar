@@ -98,6 +98,12 @@ class DeleteFileTask implements Runnable {
 					// 删除del记录
 					JdbcUtils.runUpdate(pst3, sql3.toString(), url);
 
+					if (fileRow != null && JdbcUtils.runQueryOneInteger(connection,
+							"select count(1) from t_file where linkedFileId=?", fileId) > 0) {
+						connection.commit();
+						continue;
+					}
+
 					if (fileRow != null) {
 						if (fileRow.get("cover") != null) {
 							// 记录del封面
