@@ -18,7 +18,7 @@ import com.giveup.ValueUtils;
 class DeleteNotexistFileTask implements Runnable {
 
 	private static Logger logger = Logger.getLogger(DeleteNotexistFileTask.class);
-	int pageNo = 0;
+	private static int pageNo = 0;
 	int pageSize = 50;
 	private Config config;
 
@@ -38,8 +38,10 @@ class DeleteNotexistFileTask implements Runnable {
 
 			Integer notCheckCount = JdbcUtils.runQueryOneInteger(connection,
 					"select count(1) from t_file where checkIs=0 ");
-			if (notCheckCount == 0)
+			if (notCheckCount == 0) {
 				JdbcUtils.runUpdate(connection, "update t_file set checkIs=0 ");
+				pageNo = 0;
+			}
 			connection.commit();
 
 			pageNo++;
