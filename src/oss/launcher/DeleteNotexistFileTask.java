@@ -19,7 +19,7 @@ class DeleteNotexistFileTask implements Runnable {
 
 	private static Logger logger = Logger.getLogger(DeleteNotexistFileTask.class);
 	private static int pageNo = 0;
-	int pageSize = 50;
+	int pageSize = 100;
 	private Config config;
 
 	public DeleteNotexistFileTask(Config config) {
