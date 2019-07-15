@@ -18,6 +18,7 @@ import org.apache.log4j.Logger;
 import com.giveup.IOUtils;
 import com.giveup.InteractRuntimeException;
 import com.giveup.JdbcUtils;
+import com.giveup.ListUtils;
 import com.giveup.StrUtils;
 import com.giveup.UrlUtils;
 import com.giveup.ValueUtils;
@@ -47,7 +48,7 @@ public class OssLauncher {
 	}
 
 	public void change(Connection connection, String[] oldStrs, String[] newStrs) throws Exception {
-		delete(connection, StrUtils.extractOffStrs(oldStrs, newStrs));
+		delete(connection, ListUtils.extractOffEles(oldStrs, newStrs));
 		realize(connection, newStrs);
 	}
 
@@ -174,7 +175,7 @@ public class OssLauncher {
 			sql1 = new StringBuilder("select id fileId,path,duration from t_file where  md5=? limit 1");
 
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmssSSS");
-			String ext = UrlUtils.fileExtGet(originalFileName);
+			String ext = UrlUtils.getExtName(originalFileName);
 			String tmpFileId = sdf.format(now) + RandomStringUtils.randomNumeric(6);
 			String realFileId = tmpFileId;
 			String linkFileId = sdf.format(now) + RandomStringUtils.randomNumeric(6);
@@ -353,7 +354,7 @@ public class OssLauncher {
 			sql1 = new StringBuilder("select id fileId,path,duration from t_file where md5=? limit 1");
 
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmssSSS");
-			String ext = UrlUtils.fileExtGet(originalFileName);
+			String ext = UrlUtils.getExtName(originalFileName);
 			String tmpFileId = sdf.format(now) + RandomStringUtils.randomNumeric(6);
 			String realFileId = tmpFileId;
 			String linkFileId = sdf.format(now) + RandomStringUtils.randomNumeric(6);

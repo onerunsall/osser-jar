@@ -119,7 +119,7 @@ class DeleteFileTask implements Runnable {
 					else {
 						logger.debug("file.exists " + file.exists());
 						// 删除改目标文件的变种
-						File fileVariantFolder = new File(file.getParent(), UrlUtils.fileExtStrip(file.getName()));
+						File fileVariantFolder = new File(file.getParent(), UrlUtils.stripExtName(file.getName()));
 						if (fileVariantFolder.exists()
 								&& !fileVariantFolder.getAbsolutePath().equals(file.getParentFile().getAbsolutePath()))
 							if (!IOUtils.deleteRecursion(fileVariantFolder))
