@@ -38,11 +38,6 @@ public class OssLauncher {
 		realize(connection, newStr);
 	}
 
-	public void changeByCommaSplit(Connection connection, String commaSplitOld, String commaSplitNew) throws Exception {
-		change(connection, StringUtils.splitByWholeSeparatorPreserveAllTokens(commaSplitOld, ","),
-				StringUtils.splitByWholeSeparatorPreserveAllTokens(commaSplitNew, ","));
-	}
-
 	public void change(Connection connection, List<String> oldStrs, List<String> newStrs) throws Exception {
 		change(connection, oldStrs.toArray(new String[] {}), newStrs.toArray(new String[] {}));
 	}
