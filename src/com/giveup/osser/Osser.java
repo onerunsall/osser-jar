@@ -1,4 +1,4 @@
-package oss.launcher;
+package com.giveup.osser;
 
 import java.io.File;
 import java.io.InputStream;
@@ -26,9 +26,9 @@ import com.giveup.ValueUtils;
 import net.coobird.thumbnailator.Thumbnails;
 import net.coobird.thumbnailator.Thumbnails.Builder;
 
-public class OssLauncher {
+public class Osser {
 
-	private static Logger logger = Logger.getLogger(OssLauncher.class);
+	private static Logger logger = Logger.getLogger(Osser.class);
 	private Config config;
 
 	public void change(Connection connection, String oldStr, String newStr) throws Exception {
@@ -111,7 +111,7 @@ public class OssLauncher {
 		pst.close();
 	}
 
-	public OssLauncher(Config config) {
+	public Osser(Config config) {
 		this.config = config;
 	}
 

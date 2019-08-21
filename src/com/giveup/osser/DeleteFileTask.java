@@ -1,4 +1,4 @@
-package oss.launcher;
+package com.giveup.osser;
 
 import java.io.File;
 import java.net.MalformedURLException;

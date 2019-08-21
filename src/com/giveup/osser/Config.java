@@ -1,4 +1,4 @@
-package oss.launcher;
+package com.giveup.osser;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -36,7 +36,7 @@ public class Config {
 		scheduledExecutorService.scheduleWithFixedDelay(deleteTmpTask, 0, 10, TimeUnit.MINUTES);
 		scheduledExecutorService.scheduleWithFixedDelay(deleteFileTask, 0, 1, TimeUnit.MINUTES);
 		scheduledExecutorService.scheduleWithFixedDelay(deleteNotexistFileTask, 0, 5, TimeUnit.MINUTES);
-
+		
 		Calendar calendar = Calendar.getInstance();
 		calendar.set(Calendar.HOUR_OF_DAY, 23);
 		calendar.set(Calendar.MINUTE, 59);

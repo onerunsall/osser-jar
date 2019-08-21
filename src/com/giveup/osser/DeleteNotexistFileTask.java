@@ -1,4 +1,4 @@
-package oss.launcher;
+package com.giveup.osser;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -19,7 +19,7 @@ class DeleteNotexistFileTask implements Runnable {
 
 	private static Logger logger = Logger.getLogger(DeleteNotexistFileTask.class);
 	private static int pageNo = 0;
-	int pageSize = 100;
+	int pageSize = 20;
 	private Config config;
 
 	public DeleteNotexistFileTask(Config config) {
